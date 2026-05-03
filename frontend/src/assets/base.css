@@ -1,0 +1,151 @@
+/* ==============================================
+   ADVENTURE - Variables de marca
+   ============================================== */
+:root {
+  /* Colores principales */
+  --primary: #df243c;
+  --primary-color: #df243c;
+  --secondary: #7cd3e3;
+  --neon: #7cd3e3;
+  --dark: #111111;
+
+  /* Complementarios */
+  --comp-1: #556163;
+  --comp-2: #61a4b0;
+  --comp-3: #375d63;
+
+  /* Gradientes */
+  --gradient-brand: linear-gradient(to right, #df243c, #7cd3e3);
+
+  /* Fondos */
+  --light: #f0f8fa;
+  --section-dark: #1a1a1a;
+  --card-dark: #2b3c3e;
+
+  /* Tipografía */
+  --font-heading: 'Azonix', 'Geo Sans Light', sans-serif;
+  --font-body: 'Geo Sans Light', 'Nunito', sans-serif;
+
+  /* Sistema base */
+  --vt-c-white: #ffffff;
+  --vt-c-black: #111111;
+
+  /* Texto */
+  --color-background: #0a0a0a;
+  --color-background-soft: #121212;
+  --color-background-mute: #1a1a1a;
+
+  --color-text: rgba(255, 255, 255, 0.85);
+  --color-heading: #ffffff;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+
+  --section-gap: 160px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Layout base */
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body */
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+
+  /* 🌌 Fondo moderno */
+  background: radial-gradient(circle at top, #1a1a1a, #0a0a0a);
+
+  line-height: 1.6;
+  font-family:
+    'Geo Sans Light',
+    'Nunito',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+
+  font-size: 15px;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: var(--secondary);
+  transition: 0.3s;
+}
+
+a:hover {
+  color: var(--neon);
+}
+
+/* ==============================================
+   🌫️ GLASS SYSTEM
+   ============================================== */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+/* ==============================================
+   💡 NEON EFFECTS
+   ============================================== */
+.neon-hover:hover {
+  box-shadow:
+    0 0 6px var(--neon),
+    0 0 15px rgba(124, 211, 227, 0.3);
+}
+
+.neon-text {
+  text-shadow: 0 0 8px rgba(124, 211, 227, 0.6);
+}
+
+/* ==============================================
+   ⚡ UX MEJORAS
+   ============================================== */
+* {
+  transition: all 0.2s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==============================================
+   🌙 DARK MODE (refuerzo)
+   ============================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0a0a;
+    --color-background-soft: #121212;
+    --color-background-mute: #1a1a1a;
+
+    --color-text: rgba(255, 255, 255, 0.85);
+    --color-heading: #ffffff;
+  }
+}
