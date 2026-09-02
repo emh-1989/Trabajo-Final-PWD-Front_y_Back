@@ -2,7 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 
-const HomeView = () => import('@/views/Inicio.vue')
+const InicioView = () => import('@/views/Inicio.vue')
 const CondicionesView = () => import('@/views/condiciones_de_uso.vue')
 const PrivacidadView = () => import('@/views/privacidad.vue')
 const ContactoView = () => import('@/views/contacto.vue')
@@ -21,11 +21,12 @@ const PublicarPropiedadesView = () => import('@/views/PublicarPropiedades.vue')
 const AdminPanelView = () => import('@/views/AdminPanel.vue')
 const AdminUsuariosView = () => import('@/views/AdminUsuarios.vue')
 const NotFoundView = () => import('@/views/NotFound.vue')
+const AdminDestinosView = () => import('@/views/AdminDestinosView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: HomeView },
+    { path: '/', name: 'home', component: InicioView },
     { path: '/condiciones_de_uso', name: 'condiciones', component: CondicionesView },
     { path: '/privacidad', name: 'privacidad', component: PrivacidadView },
     { path: '/contacto', name: 'contacto', component: ContactoView },
@@ -81,11 +82,16 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: ['admin'] },
     },
     { path: '/:pathMatch(.*)*', name: 'notFound', component: NotFoundView },
+
+    {
+      path: '/admin/destinos',
+      name: 'adminDestinos',
+      component: AdminDestinosView,
+      meta: { requiresAuth: true, roles: ['admin'] },
+    },
   ],
 })
 
-// ── FIX: inicializar auth UNA vez antes del primer guard ──────────
-// Evita el race condition donde el guard corre antes que inicializar() termine
 let authListo = false
 
 router.beforeEach(async (to, _from, next) => {

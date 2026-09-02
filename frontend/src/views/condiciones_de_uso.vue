@@ -35,7 +35,6 @@ const irA = (ruta: string) => router.push(ruta)
 </template>
 
 <style scoped>
-/* FIX: selector corregido de .contacto a .condiciones */
 .condiciones {
   background: #111111;
   color: white;

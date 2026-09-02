@@ -74,7 +74,7 @@ onMounted(() => {
 
         <div class="filtro">
           <label>Precio máx: ${{ precioMax }}</label>
-          <input type="range" min="10" max="1500000" v-model="precioMax" />
+          <input type="range" min="10000" max="1500000" v-model="precioMax" />
         </div>
 
         <div class="filtro">

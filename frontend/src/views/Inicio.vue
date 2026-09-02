@@ -1,109 +1,86 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import PromoCard from '@/components/PromoCard.vue'
-import ReviewCard from '@/components/ReviewCard.vue'
-import EspectaculosCard from '@/components/EspectaculosCard.vue'
-import DestinosCard from '@/components/DestinosCard.vue'
-import hero from '@/assets/hero.jpg'
 import { Icon } from '@iconify/vue'
+import PromoCard from '@/components/PromoCard.vue'
+import EspectaculosCard from '@/components/EspectaculosCard.vue'
+import hero from '@/assets/hero.jpg'
 import explora from '@/assets/explora.jpg'
+import { useHotelesStore } from '@/stores/useHotelesStore'
+import { useEntretenimientoStore } from '@/stores/useEntretenimientoStore'
+import { useDestinosStore } from '@/stores/useDestinosStore'
 
 const router = useRouter()
-const irA = (ruta: string) => router.push(ruta)
+const hotelesStore = useHotelesStore()
+const entretenimientoStore = useEntretenimientoStore()
+const destinosStore = useDestinosStore()
+
+const busqueda = ref('')
+
+const buscar = () => {
+  if (busqueda.value.trim()) {
+    router.push({ path: '/hospedaje', query: { destino: busqueda.value } })
+  } else {
+    router.push('/hospedaje')
+  }
+}
 
 const categorias = [
-  { icon: 'mdi:mountain', nombre: 'Montaña' },
-  { icon: 'mdi:beach', nombre: 'Playa' },
-  { icon: 'mdi:city', nombre: 'Ciudad' },
-  { icon: 'mdi:ticket-outline', nombre: 'Eventos' },
+  { icon: 'mdi:mountain', nombre: 'Montaña', ruta: '/hospedaje', query: { tipo: 'resort' } },
+  { icon: 'mdi:beach', nombre: 'Playa', ruta: '/hospedaje', query: { destino: 'mar' } },
+  { icon: 'mdi:city', nombre: 'Ciudad', ruta: '/hospedaje', query: { tipo: 'hotel' } },
+  { icon: 'mdi:ticket-outline', nombre: 'Eventos', ruta: '/entretenimiento', query: {} },
 ]
 
-const promos = [
-  {
-    id: 1,
-    titulo: 'San Carlos de Bariloche',
-    fecha: '20 al 25 de jun.',
-    precio: '$380 USD noche',
-    imagen: '/imagenes/bariloche.jpg',
-  },
-  {
-    id: 2,
-    titulo: 'Mendoza',
-    fecha: '21 al 28 de jun.',
-    precio: '$330 USD noche',
-    imagen: '/imagenes/mendoza.jpg',
-  },
-  {
-    id: 3,
-    titulo: 'Buenos Aires',
-    fecha: '23 al 30 de jun.',
-    precio: '$350 USD noche',
-    imagen: '/imagenes/buenos_aires.jpg',
-  },
-]
+const irACategoria = (cat: (typeof categorias)[0]) => {
+  router.push({ path: cat.ruta, query: cat.query })
+}
 
-const reviews = [
-  {
-    id: 1,
-    texto: 'Excelente experiencia! Todo muy bien organizado.',
-    autor: 'Andycor621',
-    estrellas: 5,
-  },
-  {
-    id: 2,
-    texto: 'Muy buen servicio, superó expectativas.',
-    autor: 'MaríaG',
-    estrellas: 4,
-  },
-]
+const promos = ref<{ id: number; titulo: string; fecha: string; precio: string; imagen: string }[]>(
+  [],
+)
+const espectaculos = ref<
+  { id: number; titulo: string; fecha: string; precio: string; imagen: string }[]
+>([])
 
-const espectaculos = [
-  {
-    id: 1,
-    titulo: 'AC/DC Power up tour',
-    fecha: '20 al 25 de jun.',
-    precio: '$300 USD-1000 USD',
-    imagen: '/imagenes/acdc.jpg',
-  },
-  {
-    id: 2,
-    titulo: 'Esperando la carroza- teatro',
-    fecha: '20 al 30 de junio',
-    precio: '$40 USD-100 USD ',
-    imagen: '/imagenes/esperando_la_carroza.jpg',
-  },
-  {
-    id: 3,
-    titulo: 'Proyecto Fin del Mundo',
-    fecha: '23 al 30 de jun.',
-    precio: '$15.000 $',
-    imagen: '/imagenes/proyecto_fin_del_mundo.jpg',
-  },
-]
+// ── Slider destinos ────────────────────────────────────────
+const sliderActivo = ref(0)
 
-const destinos = [
-  {
-    id: 1,
-    titulo: 'Aruba, Caribe',
-    descripcion:
-      'Aruba es una pequeña isla autónoma del Reino de los Países Bajos, situada al sur del Caribe, cerca de Venezuela. Conocida como "La Isla Feliz", destaca por sus playas de arena blanca, aguas cristalinas y un clima seco y soleado todo el año, al estar fuera de la zona de huracanes.',
-    imagen: '/imagenes/aruba.jpg',
-  },
-  {
-    id: 2,
-    titulo: 'Cappadocia, Turquía',
-    descripcion:
-      'Cappadocia es una región histórica en el centro de Turquía, famosa por sus formaciones rocosas únicas, conocidas como "chimeneas de hadas". Estas formaciones se crearon a lo largo de millones de años debido a la erosión de la roca volcánica blanda. La región también es conocida por sus ciudades subterráneas, iglesias rupestres y paisajes surrealistas, lo que la convierte en un destino turístico popular.',
-    imagen: '/imagenes/cappadocia.jpg',
-  },
-  {
-    id: 3,
-    titulo: 'Bali, Indonesia',
-    descripcion:
-      'Bali es una isla indonesia conocida por sus paisajes tropicales, templos hindues y una vibrante cultura. Es un destino popular para el turismo de playa, con playas de arena blanca, aguas cristalinas y una escena artística y creativa floreciente.',
-    imagen: '/imagenes/bali.jpg',
-  },
-]
+const siguiente = () => {
+  sliderActivo.value = (sliderActivo.value + 1) % destinosStore.destinos.length
+}
+
+const anterior = () => {
+  sliderActivo.value =
+    (sliderActivo.value - 1 + destinosStore.destinos.length) % destinosStore.destinos.length
+}
+
+onMounted(async () => {
+  hotelesStore.filtros = {}
+  await hotelesStore.fetchHoteles()
+  const top3 = [...hotelesStore.hoteles].sort((a, b) => b.rating - a.rating).slice(0, 3)
+  promos.value = top3.map((h) => ({
+    id: h.id,
+    titulo: h.nombre,
+    fecha: h.ubicacion,
+    precio: `$${h.precio} USD / noche`,
+    imagen: h.imagen || 'https://picsum.photos/seed/hotel/400/300',
+  }))
+
+  await entretenimientoStore.buscarEventos({})
+  espectaculos.value = entretenimientoStore.eventos.slice(0, 3).map((e) => ({
+    id: e.id,
+    titulo: e.titulo,
+    fecha: e.fecha,
+    precio: e.ubicacion,
+    imagen: e.imagen || 'https://picsum.photos/seed/evento/400/300',
+  }))
+
+  await destinosStore.fetchDestinos()
+})
+
+const irAHotel = (id: number) => router.push(`/hotel/${id}`)
+const irAEvento = () => router.push('/entretenimiento')
 </script>
 
 <template>
@@ -115,9 +92,7 @@ const destinos = [
       :initial="{ opacity: 0, scale: 0.95 }"
       :visible="{ opacity: 1, scale: 1 }"
       :transition="{ duration: 600 }"
-      :style="{
-        backgroundImage: `linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.5)), url(${hero})`,
-      }"
+      :style="{ backgroundImage: `linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.5)), url(${hero})` }"
     >
       <h2
         class="neon-text"
@@ -128,7 +103,6 @@ const destinos = [
       >
         Encontrá tu próximo destino
       </h2>
-
       <div
         class="barra glass-strong"
         v-motion
@@ -136,10 +110,8 @@ const destinos = [
         :visible="{ opacity: 1, y: 0 }"
         :delay="300"
       >
-        <input placeholder="¿Adónde?" />
-        <button>
-          <Icon icon="gis:map-search" width="18" />
-        </button>
+        <input v-model="busqueda" placeholder="¿Adónde?" @keyup.enter="buscar" />
+        <button @click="buscar"><Icon icon="gis:map-search" width="18" /></button>
       </div>
     </section>
 
@@ -151,7 +123,6 @@ const destinos = [
       }"
     >
       <h2 class="titulo">Explorá por tipo</h2>
-
       <div class="categorias-grid">
         <div
           class="cat glass neon-hover"
@@ -161,6 +132,7 @@ const destinos = [
           :initial="{ opacity: 0, y: 50 }"
           :visible="{ opacity: 1, y: 0 }"
           :delay="i * 120"
+          @click="irACategoria(cat)"
         >
           <Icon :icon="cat.icon" width="26" />
           <p>{{ cat.nombre }}</p>
@@ -177,12 +149,17 @@ const destinos = [
       :transition="{ duration: 500 }"
     >
       <h2 class="titulo">PROMOCIONES</h2>
-      <div class="grid">
-        <PromoCard v-for="p in promos" :key="p.id" v-bind="p" />
+      <div v-if="hotelesStore.estado === 'cargando'" class="cargando">
+        <Icon icon="mdi:loading" width="32" class="spin" />
+      </div>
+      <div v-else class="grid">
+        <div v-for="p in promos" :key="p.id" @click="irAHotel(p.id)" style="cursor: pointer">
+          <PromoCard v-bind="p" />
+        </div>
       </div>
     </section>
 
-    <!-- DESTINOS -->
+    <!-- SLIDER DESTINOS POPULARES -->
     <section
       class="seccion_destinos"
       v-motion
@@ -191,12 +168,86 @@ const destinos = [
       :transition="{ duration: 500 }"
     >
       <h2 class="titulo">DESTINOS POPULARES</h2>
-      <div class="grid">
-        <DestinosCard v-for="d in destinos" :key="d.id" v-bind="d" />
+      <p class="subtitulo">Paisajes, gastronomía y tips de viaje</p>
+
+      <div v-if="destinosStore.estado === 'cargando'" class="cargando">
+        <Icon icon="mdi:loading" width="32" class="spin" />
+      </div>
+
+      <div v-else-if="destinosStore.destinos.length" class="slider-wrapper">
+        <div class="slide" :key="sliderActivo">
+          <!-- Imagen con info encima -->
+          <div
+            class="slide-hero"
+            :style="{
+              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.85)), url(${destinosStore.destinos[sliderActivo].imagen})`,
+            }"
+          >
+            <div class="slide-hero-contenido">
+              <span class="slide-emoji">{{ destinosStore.destinos[sliderActivo].emoji }}</span>
+              <h3>{{ destinosStore.destinos[sliderActivo].titulo }}</h3>
+              <p class="slide-desc">{{ destinosStore.destinos[sliderActivo].descripcion }}</p>
+            </div>
+          </div>
+
+          <!-- Info del destino -->
+          <div class="slide-info">
+            <div class="slide-secciones">
+              <div class="slide-seccion">
+                <h4><Icon icon="mdi:image-multiple-outline" width="15" /> Paisajes</h4>
+                <p>{{ destinosStore.destinos[sliderActivo].paisajes }}</p>
+              </div>
+              <div class="slide-seccion">
+                <h4><Icon icon="mdi:food-fork-drink" width="15" /> Gastronomía</h4>
+                <p>{{ destinosStore.destinos[sliderActivo].comida }}</p>
+              </div>
+              <div class="slide-seccion">
+                <h4><Icon icon="mdi:lightbulb-outline" width="15" /> Tips</h4>
+                <ul>
+                  <li v-for="tip in destinosStore.destinos[sliderActivo].tips" :key="tip">
+                    <Icon icon="mdi:check-circle-outline" width="13" /> {{ tip }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              class="btn-explorar"
+              @click="
+                router.push({
+                  path: '/hospedaje',
+                  query: { destino: destinosStore.destinos[sliderActivo].titulo.split(',')[0] },
+                })
+              "
+            >
+              <Icon icon="mdi:magnify" width="15" />
+              Ver alojamientos en {{ destinosStore.destinos[sliderActivo].titulo.split(',')[0] }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="slider-controles">
+          <button class="btn-nav" @click="anterior">
+            <Icon icon="mdi:chevron-left" width="22" />
+          </button>
+          <div class="dots">
+            <button
+              v-for="(_, i) in destinosStore.destinos"
+              :key="i"
+              class="dot"
+              :class="{ activo: sliderActivo === i }"
+              @click="sliderActivo = i"
+            />
+          </div>
+          <button class="btn-nav" @click="siguiente">
+            <Icon icon="mdi:chevron-right" width="22" />
+          </button>
+        </div>
       </div>
     </section>
 
-    <!-- EVENTOS DESTACADOS -->
+    <!-- ESPECTÁCULOS -->
     <section
       class="seccion_destacados"
       v-motion
@@ -204,30 +255,25 @@ const destinos = [
       :visible="{ opacity: 1, y: 0 }"
       :transition="{ duration: 500 }"
     >
-      <h2 class="titulo">Espectaculos destacados</h2>
-      <div class="grid">
-        <EspectaculosCard v-for="p in espectaculos" :key="p.id" v-bind="p" />
+      <h2 class="titulo">Espectáculos destacados</h2>
+      <div v-if="entretenimientoStore.estado === 'cargando'" class="cargando">
+        <Icon icon="mdi:loading" width="32" class="spin" />
       </div>
-    </section>
-
-    <!-- RESEÑAS -->
-    <section
-      class="seccion_resenas"
-      v-motion
-      :initial="{ opacity: 0, y: 60 }"
-      :visible="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 500 }"
-    >
-      <h2 class="titulo">RESEÑAS</h2>
-      <div class="grid">
-        <ReviewCard v-for="r in reviews" :key="r.id" v-bind="r" />
+      <div v-else class="grid">
+        <div v-for="e in espectaculos" :key="e.id" @click="irAEvento" style="cursor: pointer">
+          <EspectaculosCard v-bind="e" />
+        </div>
+      </div>
+      <div class="ver-mas">
+        <button class="btn-ver-mas" @click="router.push('/entretenimiento')">
+          Ver todos los eventos <Icon icon="mdi:arrow-right" width="16" />
+        </button>
       </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-/* HERO */
 .hero {
   height: 350px;
   display: flex;
@@ -239,7 +285,6 @@ const destinos = [
   margin-left: calc(-50vw + 50%);
 }
 
-/* BARRA */
 .barra {
   display: flex;
   width: min(600px, 90%);
@@ -254,6 +299,7 @@ const destinos = [
   background: transparent;
   border: none;
   color: white;
+  outline: none;
 }
 
 .barra button {
@@ -270,56 +316,6 @@ const destinos = [
   box-shadow: 0 0 8px rgba(124, 211, 227, 0.6);
 }
 
-/* SECCIONES — base compartida */
-.seccion_destinos,
-.seccion_promos,
-.seccion_destacados,
-.seccion_resenas {
-  padding: 3.5rem 1.5rem;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-}
-
-.titulo {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #ffffff;
-}
-
-/* PROMOCIONES — acento rojo */
-.seccion_promos {
-  background: #111111;
-  border-top: 3px solid #df243c;
-}
-
-/* DESTINOS — acento celeste */
-.seccion_destinos {
-  background: #111111;
-  border-top: 3px solid #7cd3e3;
-}
-
-/* ESPECTÁCULOS — acento rojo */
-.seccion_destacados {
-  background: #111111;
-  border-top: 3px solid #df243c;
-  padding: 2.5rem 1.5rem;
-}
-
-/* RESEÑAS — acento celeste */
-.seccion_resenas {
-  background: #111111;
-  border-top: 3px solid #7cd3e3;
-  padding: 2.5rem 1.5rem;
-}
-
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-/* CATEGORÍAS */
 .seccion_categorias {
   height: 350px;
   display: flex;
@@ -360,14 +356,273 @@ const destinos = [
   box-shadow: 0 0 15px rgba(124, 211, 227, 0.4);
 }
 
-/* DESTINOS */
-.destino {
-  padding: 2rem;
-  text-align: center;
+.seccion_promos,
+.seccion_destinos,
+.seccion_destacados {
+  padding: 3.5rem 1.5rem;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
 }
 
-/* NEON */
+.seccion_promos {
+  background: #111111;
+  border-top: 3px solid #df243c;
+}
+.seccion_destinos {
+  background: #0d0d0d;
+  border-top: 3px solid #7cd3e3;
+}
+.seccion_destacados {
+  background: #111111;
+  border-top: 3px solid #df243c;
+  padding: 2.5rem 1.5rem;
+}
+
+.titulo {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.subtitulo {
+  text-align: center;
+  opacity: 0.5;
+  font-size: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* SLIDER */
+.slider-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.slide {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 211, 227, 0.2);
+  animation: fadeSlide 0.4s ease;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-hero {
+  height: 280px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.5rem;
+}
+
+.slide-hero-contenido {
+  color: white;
+}
+.slide-emoji {
+  font-size: 2rem;
+}
+
+.slide-hero-contenido h3 {
+  font-size: 1.6rem;
+  margin: 0.3rem 0;
+  color: #7cd3e3;
+  text-shadow: 0 0 10px rgba(124, 211, 227, 0.5);
+}
+
+.slide-desc {
+  opacity: 0.85;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.slide-info {
+  background: #1a1a1a;
+  padding: 1.5rem;
+}
+
+.slide-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.slide-seccion {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.slide-seccion h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #7cd3e3;
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+.slide-seccion p,
+.slide-seccion li {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.slide-seccion ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.slide-seccion li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.btn-explorar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(124, 211, 227, 0.1);
+  border: 1px solid rgba(124, 211, 227, 0.3);
+  color: #7cd3e3;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-explorar:hover {
+  background: rgba(124, 211, 227, 0.2);
+}
+
+.slider-controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.btn-nav {
+  background: rgba(124, 211, 227, 0.1);
+  border: 1px solid rgba(124, 211, 227, 0.3);
+  color: #7cd3e3;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-nav:hover {
+  background: rgba(124, 211, 227, 0.25);
+}
+
+.dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0;
+}
+
+.dot.activo {
+  background: #7cd3e3;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.ver-mas {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.btn-ver-mas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1px solid rgba(223, 36, 60, 0.4);
+  color: #df243c;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-ver-mas:hover {
+  background: rgba(223, 36, 60, 0.1);
+}
+
+.cargando {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+  color: #7cd3e3;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .neon-text {
   text-shadow: 0 0 10px rgba(124, 211, 227, 0.6);
+}
+
+@media (max-width: 640px) {
+  .slide-secciones {
+    grid-template-columns: 1fr;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .slide-hero {
+    height: 200px;
+  }
+  .slide-hero-contenido h3 {
+    font-size: 1.2rem;
+  }
 }
 </style>

@@ -100,6 +100,13 @@ const estadoConfig: Record<Estado, { label: string; color: string; icon: string 
             <span class="lbl">Usuarios</span>
           </div>
         </div>
+        <div class="stat lila" @click="router.push('/admin/destinos')" style="cursor: pointer">
+          <Icon icon="mdi:earth" width="24" />
+          <div>
+            <span class="num">→</span>
+            <span class="lbl">Destinos</span>
+          </div>
+        </div>
       </div>
 
       <!-- FILTROS -->
@@ -299,6 +306,13 @@ const estadoConfig: Record<Estado, { label: string; color: string; icon: string 
 }
 .celeste .num {
   color: #7cd3e3;
+}
+
+.lila {
+  border-left: 3px solid #a78bfa;
+}
+.lila .num {
+  color: #a78bfa;
 }
 
 /* FILTROS */

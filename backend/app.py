@@ -13,10 +13,12 @@ from routes.vuelos.vuelos_routes import vuelos_bp
 from routes.restaurantes.restaurantes_routes import restaurantes_bp
 from routes.entretenimiento.entretenimiento_routes import entretenimiento_bp
 from routes.admin.admin_routes import admin_bp
+from routes.destinos.destinos_routes import destinos_bp
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.url_map.strict_slashes = False  
 
     # CORS — permite requests desde el front en Vue
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
@@ -35,6 +37,7 @@ def create_app():
     app.register_blueprint(restaurantes_bp,    url_prefix='/api/restaurantes')
     app.register_blueprint(entretenimiento_bp, url_prefix='/api/entretenimiento')
     app.register_blueprint(admin_bp,           url_prefix='/api/admin')
+    app.register_blueprint(destinos_bp, url_prefix='/api/destinos')
 
     return app
 

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import HotelCard from '@/components/HotelCard.vue'
 import EstadoCarga from '@/components/EstadoCarga.vue'
 import { useHotelesStore } from '@/stores/useHotelesStore'
 import { useFavoritosStore } from '@/stores/useFavoritosStore'
 
 const router = useRouter()
+const route = useRoute()
 const hotelesStore = useHotelesStore()
 const favs = useFavoritosStore()
 
@@ -17,14 +18,11 @@ const pasajeros = ref(2)
 const checkin = ref('')
 const checkout = ref('')
 
-// FILTROS — se pasan al store para que hotelesFiltrados los aplique
+// FILTROS
 const precioMax = ref(150)
 const ratingMin = ref(0)
 const tipoSeleccionado = ref<'' | 'hotel' | 'hostel' | 'departamento' | 'resort'>('')
 
-// FIX: ya no hay computed local duplicando la lógica del store.
-// Usamos hotelesFiltrados del store directamente y actualizamos
-// los filtros del store cuando el usuario los cambia.
 const aplicarFiltros = () => {
   hotelesStore.filtros = {
     ...hotelesStore.filtros,
@@ -60,8 +58,26 @@ const toggleFavorito = (hotel: (typeof hotelesStore.hoteles)[0]) => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   favs.fetchFavoritos()
+
+  // Leer query params de la URL (viene desde Inicio.vue)
+  const queryDestino = route.query.destino as string | undefined
+  const queryTipo = route.query.tipo as string | undefined
+
+  if (queryDestino) {
+    destino.value = queryDestino
+  }
+  if (queryTipo && ['hotel', 'hostel', 'departamento', 'resort'].includes(queryTipo)) {
+    tipoSeleccionado.value = queryTipo as 'hotel' | 'hostel' | 'departamento' | 'resort'
+  }
+
+  // Si vino con parámetros, buscar automáticamente
+  if (queryDestino || queryTipo) {
+    await buscar()
+  } else {
+    await hotelesStore.fetchHoteles()
+  }
 })
 </script>
 
