@@ -2,7 +2,7 @@ from database import get_connection
 
 class HotelModel:
 
-    def __init__(self, id=0, nombre="", ubicacion="", descripcion="", precio=0.0, rating=0.0, tipo="hotel", imagen="", propietario_id=None, created_at=None):
+    def __init__(self, id=0, nombre="", ubicacion="", descripcion="", precio=0.0, rating=0.0, tipo="hotel", imagen="", propietario_id=None, created_at=None, imagenes=None):
         self.id = id
         self.nombre = nombre
         self.ubicacion = ubicacion
@@ -13,6 +13,7 @@ class HotelModel:
         self.imagen = imagen
         self.propietario_id = propietario_id
         self.created_at = created_at
+        self.imagenes = imagenes or []
 
     def serializar(self) -> dict:
         return {
@@ -24,6 +25,7 @@ class HotelModel:
             'rating': float(self.rating),
             'tipo': self.tipo,
             'imagen': self.imagen,
+            'imagenes': self.imagenes,
             'propietario_id': self.propietario_id,
             'created_at': str(self.created_at)
         }
@@ -61,7 +63,45 @@ class HotelModel:
         data = cursor.fetchone()
         cursor.close()
         conn.close()
-        return HotelModel.deserializar(data) if data else None
+        if not data:
+            return None
+        hotel = HotelModel.deserializar(data)
+        hotel.imagenes = HotelModel.obtener_imagenes(id)
+        return hotel
+
+    @staticmethod
+    def obtener_imagenes(hotel_id):
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT url FROM hoteles_imagenes WHERE hotel_id = %s ORDER BY orden ASC, id ASC",
+            (hotel_id,)
+        )
+        data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return [fila['url'] for fila in data]
+
+    @staticmethod
+    def agregar_imagen(hotel_id, url, orden=0):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO hoteles_imagenes (hotel_id, url, orden) VALUES (%s, %s, %s)",
+            (hotel_id, url, orden)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    @staticmethod
+    def eliminar_imagen(id):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM hoteles_imagenes WHERE id = %s", (id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
 
     @staticmethod
     def buscar(destino=None, checkin=None, checkout=None, pasajeros=None):
