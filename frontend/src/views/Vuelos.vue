@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import VueloCard from '@/components/VueloCard.vue'
 import EstadoCarga from '@/components/EstadoCarga.vue'
 import { useVuelosStore } from '@/stores/useVuelosStore'
 import { useFavoritosStore } from '@/stores/useFavoritosStore'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useReservasStore } from '@/stores/useReservasStore'
 
 const vuelosStore = useVuelosStore()
 const favs = useFavoritosStore()
+const router = useRouter()
+const auth = useAuthStore()
+const reservasStore = useReservasStore()
 
 // BUSCADOR
 const origen = ref('')
@@ -33,9 +39,16 @@ const buscar = () => {
   })
 }
 
-// SELECCIONAR VUELO
-const seleccionarVuelo = (id: number) => {
-  console.log('Vuelo seleccionado:', id)
+// SELECCIONAR VUELO: crea una reserva asociada al vuelo
+const seleccionarVuelo = async (id: number) => {
+  if (!auth.estaLogueado) {
+    router.push({ name: 'login', query: { redirect: '/vuelos' } })
+    return
+  }
+  await reservasStore.crear({ vuelo_id: id })
+  if (reservasStore.estado === 'exito') {
+    router.push('/mis-reservas')
+  }
 }
 
 // TOGGLE FAVORITO
@@ -140,6 +153,10 @@ onMounted(() => {
             Vuelos disponibles
             <span class="count">{{ vuelosStore.vuelosFiltrados.length }}</span>
           </h2>
+
+          <p v-if="reservasStore.estado === 'error'" class="empty">
+            {{ reservasStore.mensajeError }}
+          </p>
 
           <div class="lista">
             <VueloCard

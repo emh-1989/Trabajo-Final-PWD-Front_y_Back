@@ -37,7 +37,7 @@ const loginGithub = () => console.log('Login con GitHub')
         <h2>Iniciar sesión</h2>
 
         <!-- ERROR desde el store -->
-        <p v-if="auth.error" class="error">{{ auth.mensajeError }}</p>
+        <p v-if="auth.estado === 'error'" class="error">{{ auth.mensajeError }}</p>
 
         <!-- EMAIL -->
         <div class="campo">

@@ -5,9 +5,11 @@ import EntretenimientoCard from '@/components/EntretenimientoCard.vue'
 import EstadoCarga from '@/components/EstadoCarga.vue'
 import { useEntretenimientoStore } from '@/stores/useEntretenimientoStore'
 import { useFavoritosStore } from '@/stores/useFavoritosStore'
+import DetalleModal from '@/components/DetalleModal.vue'
 
 const entretenimientoStore = useEntretenimientoStore()
 const favs = useFavoritosStore()
+const eventoSeleccionado = ref<any>(null)
 
 // BUSCADOR LOCAL
 const destino = ref('')
@@ -139,6 +141,7 @@ onMounted(() => {
               v-bind="e"
               :esFavorito="favs.esFavorito('entretenimiento', e.id)"
               @toggleFavorito="toggleFavorito(e)"
+              @verDetalle="eventoSeleccionado = e"
             />
           </div>
 
@@ -148,6 +151,19 @@ onMounted(() => {
         </template>
       </section>
     </div>
+
+    <!-- DETALLE (modal) -->
+    <DetalleModal
+      :visible="!!eventoSeleccionado"
+      :titulo="eventoSeleccionado?.titulo ?? ''"
+      :imagen="eventoSeleccionado?.imagen"
+      @cerrar="eventoSeleccionado = null"
+    >
+      <p>📍 {{ eventoSeleccionado?.ubicacion }}</p>
+      <p>📅 {{ eventoSeleccionado?.fecha }}</p>
+      <p>🎟️ {{ eventoSeleccionado?.tipo }}</p>
+      <p>{{ eventoSeleccionado?.descripcion }}</p>
+    </DetalleModal>
   </div>
 </template>
 

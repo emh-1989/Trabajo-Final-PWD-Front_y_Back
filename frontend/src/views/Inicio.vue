@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import PromoCard from '@/components/PromoCard.vue'
 import EspectaculosCard from '@/components/EspectaculosCard.vue'
+import DetalleModal from '@/components/DetalleModal.vue'
 import hero from '@/assets/hero.jpg'
 import explora from '@/assets/explora.jpg'
 import { useHotelesStore } from '@/stores/useHotelesStore'
@@ -16,6 +17,7 @@ const entretenimientoStore = useEntretenimientoStore()
 const destinosStore = useDestinosStore()
 
 const busqueda = ref('')
+const eventoSeleccionado = ref<any>(null)
 
 const buscar = () => {
   if (busqueda.value.trim()) {
@@ -45,6 +47,7 @@ const espectaculos = ref<
 
 // ── Slider destinos ────────────────────────────────────────
 const sliderActivo = ref(0)
+const destinoActivo = computed(() => destinosStore.destinos[sliderActivo.value])
 
 const siguiente = () => {
   sliderActivo.value = (sliderActivo.value + 1) % destinosStore.destinos.length
@@ -80,7 +83,9 @@ onMounted(async () => {
 })
 
 const irAHotel = (id: number) => router.push(`/hotel/${id}`)
-const irAEvento = () => router.push('/entretenimiento')
+const verEvento = (id: number) => {
+  eventoSeleccionado.value = entretenimientoStore.eventos.find((ev) => ev.id === id) ?? null
+}
 </script>
 
 <template>
@@ -174,19 +179,19 @@ const irAEvento = () => router.push('/entretenimiento')
         <Icon icon="mdi:loading" width="32" class="spin" />
       </div>
 
-      <div v-else-if="destinosStore.destinos.length" class="slider-wrapper">
+      <div v-else-if="destinoActivo" class="slider-wrapper">
         <div class="slide" :key="sliderActivo">
           <!-- Imagen con info encima -->
           <div
             class="slide-hero"
             :style="{
-              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.85)), url(${destinosStore.destinos[sliderActivo].imagen})`,
+              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.85)), url(${destinoActivo.imagen})`,
             }"
           >
             <div class="slide-hero-contenido">
-              <span class="slide-emoji">{{ destinosStore.destinos[sliderActivo].emoji }}</span>
-              <h3>{{ destinosStore.destinos[sliderActivo].titulo }}</h3>
-              <p class="slide-desc">{{ destinosStore.destinos[sliderActivo].descripcion }}</p>
+              <span class="slide-emoji">{{ destinoActivo.emoji }}</span>
+              <h3>{{ destinoActivo.titulo }}</h3>
+              <p class="slide-desc">{{ destinoActivo.descripcion }}</p>
             </div>
           </div>
 
@@ -195,16 +200,16 @@ const irAEvento = () => router.push('/entretenimiento')
             <div class="slide-secciones">
               <div class="slide-seccion">
                 <h4><Icon icon="mdi:image-multiple-outline" width="15" /> Paisajes</h4>
-                <p>{{ destinosStore.destinos[sliderActivo].paisajes }}</p>
+                <p>{{ destinoActivo.paisajes }}</p>
               </div>
               <div class="slide-seccion">
                 <h4><Icon icon="mdi:food-fork-drink" width="15" /> Gastronomía</h4>
-                <p>{{ destinosStore.destinos[sliderActivo].comida }}</p>
+                <p>{{ destinoActivo.comida }}</p>
               </div>
               <div class="slide-seccion">
                 <h4><Icon icon="mdi:lightbulb-outline" width="15" /> Tips</h4>
                 <ul>
-                  <li v-for="tip in destinosStore.destinos[sliderActivo].tips" :key="tip">
+                  <li v-for="tip in destinoActivo.tips" :key="tip">
                     <Icon icon="mdi:check-circle-outline" width="13" /> {{ tip }}
                   </li>
                 </ul>
@@ -216,12 +221,12 @@ const irAEvento = () => router.push('/entretenimiento')
               @click="
                 router.push({
                   path: '/hospedaje',
-                  query: { destino: destinosStore.destinos[sliderActivo].titulo.split(',')[0] },
+                  query: { destino: destinoActivo.titulo.split(',')[0] },
                 })
               "
             >
               <Icon icon="mdi:magnify" width="15" />
-              Ver alojamientos en {{ destinosStore.destinos[sliderActivo].titulo.split(',')[0] }}
+              Ver alojamientos en {{ destinoActivo.titulo.split(',')[0] }}
             </button>
           </div>
         </div>
@@ -260,7 +265,7 @@ const irAEvento = () => router.push('/entretenimiento')
         <Icon icon="mdi:loading" width="32" class="spin" />
       </div>
       <div v-else class="grid">
-        <div v-for="e in espectaculos" :key="e.id" @click="irAEvento" style="cursor: pointer">
+        <div v-for="e in espectaculos" :key="e.id" @click="verEvento(e.id)" style="cursor: pointer">
           <EspectaculosCard v-bind="e" />
         </div>
       </div>
@@ -270,6 +275,19 @@ const irAEvento = () => router.push('/entretenimiento')
         </button>
       </div>
     </section>
+
+    <!-- DETALLE DE EVENTO (modal) -->
+    <DetalleModal
+      :visible="!!eventoSeleccionado"
+      :titulo="eventoSeleccionado?.titulo ?? ''"
+      :imagen="eventoSeleccionado?.imagen"
+      @cerrar="eventoSeleccionado = null"
+    >
+      <p>📍 {{ eventoSeleccionado?.ubicacion }}</p>
+      <p>📅 {{ eventoSeleccionado?.fecha }}</p>
+      <p>🎟️ {{ eventoSeleccionado?.tipo }}</p>
+      <p>{{ eventoSeleccionado?.descripcion }}</p>
+    </DetalleModal>
   </div>
 </template>
 

@@ -5,9 +5,11 @@ import RestaurantCard from '@/components/RestaurantCard.vue'
 import EstadoCarga from '@/components/EstadoCarga.vue'
 import { useRestaurantesStore } from '@/stores/useRestaurantesStore'
 import { useFavoritosStore } from '@/stores/useFavoritosStore'
+import DetalleModal from '@/components/DetalleModal.vue'
 
 const restaurantesStore = useRestaurantesStore()
 const favs = useFavoritosStore()
+const restauranteSeleccionado = ref<any>(null)
 
 // BUSCADOR
 const destino = ref('')
@@ -126,6 +128,7 @@ onMounted(() => {
               :destacado="i === 0"
               :esFavorito="favs.esFavorito('restaurante', r.id)"
               @toggleFavorito="toggleFavorito(r)"
+              @verDetalle="restauranteSeleccionado = r"
             />
           </div>
 
@@ -135,6 +138,19 @@ onMounted(() => {
         </template>
       </section>
     </div>
+
+    <!-- DETALLE (modal) -->
+    <DetalleModal
+      :visible="!!restauranteSeleccionado"
+      :titulo="restauranteSeleccionado?.nombre ?? ''"
+      :imagen="restauranteSeleccionado?.imagen"
+      @cerrar="restauranteSeleccionado = null"
+    >
+      <p>📍 {{ restauranteSeleccionado?.ubicacion }}</p>
+      <p>🍽️ {{ restauranteSeleccionado?.tipo }}</p>
+      <p>💲 {{ restauranteSeleccionado?.precio }} USD</p>
+      <p>⭐ {{ restauranteSeleccionado?.rating }}</p>
+    </DetalleModal>
   </div>
 </template>
 

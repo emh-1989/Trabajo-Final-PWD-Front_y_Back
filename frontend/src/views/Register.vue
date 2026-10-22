@@ -41,7 +41,7 @@ const register = async () => {
         <p v-if="errorLocal" class="error">{{ errorLocal }}</p>
 
         <!-- Error del store (email ya existe, etc.) -->
-        <p v-else-if="auth.error" class="error">{{ auth.mensajeError }}</p>
+        <p v-else-if="auth.estado === 'error'" class="error">{{ auth.mensajeError }}</p>
 
         <!-- NOMBRE -->
         <div class="campo">

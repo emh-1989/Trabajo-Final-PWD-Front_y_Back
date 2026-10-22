@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-const router = useRouter()
-
-const props = defineProps<{
+defineProps<{
   id: number
   nombre: string
   ubicacion: string
@@ -18,15 +15,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'toggleFavorito'): void
+  (e: 'verDetalle', id: number): void
 }>()
-
-const irDetalle = () => {
-  router.push(`/restaurant/${props.id}`)
-}
 </script>
 
 <template>
-  <div class="card" :class="{ destacado }" @click="irDetalle">
+  <div class="card" :class="{ destacado }" @click="emit('verDetalle', id)">
     <!-- IMAGEN -->
     <div class="img-container">
       <img :src="imagen" />
